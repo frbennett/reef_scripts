@@ -243,7 +243,7 @@ class RunDetails(object):
 
     def _extractDate(self,element):
         from datetime import datetime
-        return datetime.strptime(self._data.find(element).text,'%Y-%M-%dT00:00:00')
+        return datetime.strptime(self._data.find(element).text,'%Y-%m-%dT%H:%M:%S')
 
 
 class MyTest(object):
