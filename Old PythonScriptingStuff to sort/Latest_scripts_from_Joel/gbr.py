@@ -25,6 +25,9 @@ def value_diff(dfL,dfR):
     return delta
 
 def veneer(**kwargs):
+	'''
+	Create a GBR specific Veneer client with extra features for configuring dynamic sednet
+	'''
     from veneer import Veneer
     class GBRVeneer(Veneer):
         def configureOptions(self,options):
