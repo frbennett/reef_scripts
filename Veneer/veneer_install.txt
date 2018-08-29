@@ -1,0 +1,15 @@
+pip install --proxy=http://username:password@web-prdproxy-usr.dmz:80 https://github.com/flowmatters/veneer-py/archive/master.zip
+
+
+
+## This is the dyn sednet stuff
+pip install --proxy=http://username:password@web-prdproxy-usr.dmz:80 https://github.com/flowmatters/dsed-py/archive/master.zip
+
+To upgrade, uninstall with:
+pip uninstall veneer-py
+
+Then do the install again
+
+pip install --proxy=http://username:password@web-prdproxy-usr.dmz:80 https://github.com/flowmatters/veneer-py/archive/master.zip
+pip install --proxy=http://username:password@web-prdproxy-usr.dmz:80 https://github.com/flowmatters/dsed-py/archive/master.zip
+pip install --proxy=http://ellisrj:Rushed23@web-prdproxy-usr.dmz:80 https://github.com/geopandas/geopandas.git
