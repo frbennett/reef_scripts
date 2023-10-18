@@ -249,10 +249,10 @@ class AnnualComparisonBuilder(object):
             sites_seen = self.load_run(run,self.region_sites[region],**tags)
             sites_seen = pd.DataFrame(sites_seen,columns=['Site','Name'])
             self.ds.add_table(sites_seen,purpose='site-lookup',**tags)
-        
+
         self.ds.rewrite(True)
 
-    def summarise_site(self,s):
+    def summarise_site(self,s,run):
         def make_df(columns):
             columns = [(con,series) for con,series in columns if series is not None and len(series)]
             if not len(columns):
@@ -265,7 +265,7 @@ class AnnualComparisonBuilder(object):
                 return
             self.ds.add_table(df,**tags)
 
-        table_constituents = ['Flow'] + list(self.ds.tag_values('constituent',site=s)-{'Flow','summary','error'})
+        table_constituents = ['Flow'] + list(self.ds.tag_values('constituent',site=s,run=run)-{'Flow','summary','error'})
         flow_obs=None
         flow_mod=None
         mod_load_columns=[]
@@ -275,7 +275,7 @@ class AnnualComparisonBuilder(object):
         err_conc_columns=[]
 
         for con in table_constituents:
-            mod = self.ds.get_tables(constituent=con,site=s,sourced='model')
+            mod = self.ds.get_tables(constituent=con,site=s,sourced='model',run=run)
             if len(mod)==1:
                 mod = mod[0]['modelled-load']
             else:
@@ -283,7 +283,7 @@ class AnnualComparisonBuilder(object):
                 continue
             mod_load_columns.append((con,mod))
 
-            obs = self.ds.get_tables(constituent=con,site=s,sourced='observation',kind='load')
+            obs = self.ds.get_tables(constituent=con,site=s,sourced='observation',kind='load',run=run)
             if len(obs)==1:
                 obs = obs[0]['observed-load']
                 error = FRAC_TO_PC*(mod-obs)/obs
@@ -312,16 +312,25 @@ class AnnualComparisonBuilder(object):
                     conc_error = FRAC_TO_PC*(mod_conc-obs_conc)/obs_conc
                     err_conc_columns.append((con,conc_error))
 
-        add_table(mod_load_columns,site=s,sourced='model',constituent='summary',timestep='wateryear',kind='load')
-        add_table(err_load_columns,site=s,sourced='model',constituent='error',timestep='wateryear',kind='load')
-        add_table(mod_conc_columns,site=s,sourced='model',constituent='summary',timestep='wateryear',kind='concentration')
-        add_table(err_conc_columns,site=s,sourced='model',constituent='error',timestep='wateryear',kind='concentration')
+        tags = {
+            'site':s,
+            'run':run,
+            'sourced':'model',
+            'timestep':'wateryear'
+        }
+        add_table(mod_load_columns,constituent='summary',kind='load',**tags)
+        add_table(err_load_columns,constituent='error',kind='load',**tags)
+        add_table(mod_conc_columns,constituent='summary',kind='concentration',**tags)
+        add_table(err_conc_columns,constituent='error',kind='concentration',**tags)
 
     def summarise_sites(self):
+        # BUT!!! What about sites existing in more than one run. (ie because we've got multiple runs for the same catchment...)
         sites=list(self.ds.tag_values('site'))
         for site in sites:
+            runs = list(self.ds.tag_values('run',site=site))
         #     print(site)
-            self.summarise_site(site)
+            for run in runs:
+                self.summarise_site(site,run)
 
 
     def build(self):
