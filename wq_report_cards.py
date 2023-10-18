@@ -121,9 +121,9 @@ class AnnualComparisonBuilder(object):
 
             vals = vals.map(lambda v: 0.0 if isinstance(v,str) and v.startswith('<') else v)
             vals = vals.map(lambda v: np.nan if isinstance(v,str) and v.startswith('>') else v)
-            
+
             vals = vals.astype('float')
-            conc_site[c] = vals    
+            conc_site[c] = vals
         return conc_site
 
     def site_loads(self,site):
@@ -218,7 +218,7 @@ class AnnualComparisonBuilder(object):
                         print(f'Error converting {ts.name} to {new_units}')
                         raise
                     ts.name = f'{constituent}_{site_name}_{new_units}'
-                    
+
                     units = new_units
                 else:
                     units = ts.name.split('_')[-1]
@@ -227,7 +227,7 @@ class AnnualComparisonBuilder(object):
                 self.ds.add_timeseries(ts,timestep='day',**ts_tags)
                 monthly = ts.resample('1M').sum()
                 self.ds.add_timeseries(ts,timestep='month',**ts_tags)
-                
+
                 wy = ts.index.map(lambda dt: f'{dt.year}-{dt.year+1}' if dt.month > 6 else f'{dt.year-1}-{dt.year}')
                 wy_ts = ts.groupby(wy).sum()
                 wy_ts.name = 'modelled-load'
