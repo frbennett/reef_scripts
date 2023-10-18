@@ -60,14 +60,33 @@ class WQReportCardBuilder(object):
 
         self.loads_file = loads_file
         self.concentrations_file = concentrations_file
+        self.annual_builder = AnnualComparisonBuilder(results_dir,self.ds,loads_file,concentrations_file,water_years=water_years,csv_files_have_header=csv_files_have_header)
+
+    def clear_dataset(self):
+        self.ds.clear()
+
+    def build(self):
+        self.clear_dataset()
+        self.annual_builder.build()
+
+    def view(self):
+        self.ds.host()
+        webbrowser.open(f'{HG_URL}/#/{DASHBOARD}?data-config.port={self.ds.port}')
+
+class AnnualComparisonBuilder(object):
+    def __init__(self,results_dir,dataset,loads_file,concentrations_file,water_years=DEFAULT_WATER_YEARS,csv_files_have_header=True):
+        self.results_dir = results_dir
+        self.csv_files_have_header = csv_files_have_header
+        self.water_years=water_years
+        self.ds = dataset
+        self.loads_file = loads_file
+        self.concentrations_file = concentrations_file
+
         self.concentrations = None
         self.loads = None
         self.conc_obs_columns = None
         self.runs = directories_under(results_dir)
         self.region_sites = None
-
-    def clear_dataset(self):
-        self.ds.clear()
 
     def initialise_obs(self):
         self.concentrations = pd.read_excel(self.concentrations_file)
@@ -304,12 +323,8 @@ class WQReportCardBuilder(object):
         #     print(site)
             self.summarise_site(site)
 
-    def view(self):
-        self.ds.host()
-        webbrowser.open(f'{HG_URL}/#/{DASHBOARD}?data-config.port={self.ds.port}')
 
     def build(self):
-        self.clear_dataset()
         self.initialise_obs()
         self.load_obs()
         self.load_runs()
