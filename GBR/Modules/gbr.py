@@ -1,10 +1,10 @@
 
 # GBR Module
 
-from compare_results import compare
-from gbr_common import init
-import gbr_stats as stats
-import gbr_timeclass as timeclass
+from .compare_results import compare
+from .gbr_common import init
+from . import gbr_stats as stats
+from . import gbr_timeclass as timeclass
 
 def _globFilenamesOnly(directory,search):
     from glob import glob
@@ -12,7 +12,7 @@ def _globFilenamesOnly(directory,search):
     return [fn.split(os.path.sep)[-1] for fn in glob(os.path.join(directory,search))]
 
 def available():
-    from gbr_common import BASE_DIRECTORY
+    from .gbr_common import BASE_DIRECTORY
     return _globFilenamesOnly(BASE_DIRECTORY,'*')
 
 def value_diff(dfL,dfR):
@@ -62,8 +62,8 @@ else:
 
 class Results(object):
     def __init__(self,run_name):
-        from gbr_common import BASE_DIRECTORY
-        from gbr_queries import ResultsQueries
+        from .gbr_common import BASE_DIRECTORY
+        from .gbr_queries import ResultsQueries
         import os
         self._time_periods = None
         self.run_name = run_name
@@ -95,7 +95,7 @@ class Results(object):
                 result = df_self[time_periods['cat'].apply(timeclass)]
             self._apply_time_series_helpers(result)
             return result
-           
+
 
         def by_timeclass(df_self):
             time_periods = self.time_periods().ix[df_self.index]
@@ -149,7 +149,7 @@ class Results(object):
 #        dataframe.of_year = types.MethodType(of_year,dataframe)
 #        dataframe.by_year = types.MethodType(by_year,dataframe)
 
-    
+
 #        dataframe.__orig_dir__ = dataframe.__dir__
 #        def new_dir(df_self):
 #            return df_self.__orig_dir__() + ['of_timeclass','of_month','of_year',
@@ -164,7 +164,13 @@ class Results(object):
         if not results_type in self._loaded:
             import pandas as pd
             import os
-            self._loaded[results_type] = pd.DataFrame.from_csv(os.path.join(self.path,results_type+'.csv'))
+            fn = os.path.join(self.path,results_type+'.csv')
+            try:
+                df = pd.read_csv(fn)
+
+            except:
+                df = pd.DataFrame.from_csv(fn)
+            self._loaded[results_type] = df
         return self._loaded[results_type]
 
     def get_node_ts(self,site,constituents):
@@ -183,12 +189,12 @@ class Results(object):
 
     def load_observed_ts(self,site,fn=None,location=None):
         """
-        Load a time series file of observed loads for a given site.   
+        Load a time series file of observed loads for a given site.
         """
         import pandas as pd
         if fn is None:
             if location is None:
-                from gbr_common import OBSERVED_DIRECTORY
+                from .gbr_common import OBSERVED_DIRECTORY
                 location = OBSERVED_DIRECTORY
             import os
             from glob import glob
@@ -202,7 +208,7 @@ class Results(object):
     def time_periods(self,fn=None):
         if self._time_periods is None:
             if fn is None:
-                from gbr_common import TIME_PERIODS
+                from .gbr_common import TIME_PERIODS
                 fn = TIME_PERIODS
             import pandas as pd
             self._time_periods = pd.read_csv(fn,index_col = 1, parse_dates = [1], dayfirst = True, names=["Water_year","date","cat"], skiprows =1)
@@ -210,7 +216,7 @@ class Results(object):
 
 class DifferenceResults(object):
     def __init__(self,run1,run2):
-        from gbr_queries import ResultsQueries
+        from .gbr_queries import ResultsQueries
         self._run1 = Results(run1)
         self._run2 = Results(run2)
         self.run_name = '('+self._run1.run_name + ' - ' + self._run2.run_name+')'
